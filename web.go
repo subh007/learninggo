@@ -14,6 +14,12 @@ type Page struct {
 	Body  []byte
 }
 
+// saving the page
+func (p *Page) save() { // difference between func (p *Page) and func (p Page)
+	filename := p.Title + ".txt"
+	ioutil.WriteFile(filename, p.Body, 0600)
+}
+
 // look in to to Responseawriter and hhtp.request why one is pointer and other is value.
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:]) //r.URL.Path is the path component of the request URL
@@ -37,8 +43,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	p, err := loadPage(title)
 
 	if err == nil {
-		fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+		// page exist
+		htmlTemp, _ := template.ParseFiles("view.html")
+		htmlTemp.Execute(w, p)
 	} else {
+		// page does not exist
 		fmt.Fprint(w, "<h1>%s</h1>", title+" page does not exist")
 	}
 }
@@ -56,10 +65,22 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	htmlTemp.Execute(w, p)
 }
 
+// saving the page
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/save/"):]
+	body := r.FormValue("body")
+
+	p := Page{Title: title, Body: []byte(body)}
+	p.save()
+
+	http.Redirect(w, r, "/view/"+title, http.StatusFound) // what is statusfound
+}
+
 func main() {
 	http.HandleFunc("/view/", viewHandler) //handle all requests to the web root ("/") with handler
 	http.HandleFunc("/edit/", editHandler) // handle the edit request.
+	http.HandleFunc("/save/", saveHandler) // handle saving the page.
 	http.ListenAndServe(":9090", nil)      //function will block until program is terminated.
 }
 
-// Next : https://golang.org/doc/articles/wiki/# Using net/http to serve wiki pages
+// Next : https://golang.org/doc/articles/wiki/# Saving Pages
