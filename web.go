@@ -48,7 +48,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		htmlTemp.Execute(w, p)
 	} else {
 		// page does not exist
-		fmt.Fprint(w, "<h1>%s</h1>", title+" page does not exist")
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 	}
 }
 
