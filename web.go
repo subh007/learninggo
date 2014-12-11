@@ -6,18 +6,20 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 )
 
 // Structure to hold the Page
 type Page struct {
-	Title string
-	Body  []byte
+	Title  string
+	Body   []byte
+	Output []byte
 }
 
 // saving the page
 func (p *Page) save() { // difference between func (p *Page) and func (p Page)
-	filename := p.Title + ".txt"
-	ioutil.WriteFile(filename, p.Body, 0600)
+	filename := p.Title + ".go"
+	ioutil.WriteFile(filename, p.Body, 0777)
 }
 
 // look in to to Responseawriter and hhtp.request why one is pointer and other is value.
@@ -27,7 +29,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 // load the file
 func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
+	filename := title + ".go"
 	body, err := ioutil.ReadFile(filename)
 
 	if err != nil {
@@ -73,13 +75,34 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	p := Page{Title: title, Body: []byte(body)}
 	p.save()
 
-	http.Redirect(w, r, "/view/"+title, http.StatusFound) // what is statusfound
+	http.Redirect(w, r, "/exec/"+title, http.StatusFound) // what is statusfound
+}
+
+// this function will execute the code.
+func executeCode(w http.ResponseWriter, r *http.Request) {
+
+	title := r.URL.Path[len("/exec/"):]
+
+	cmd := "go run " + title + ".go"
+	cmd = "go"
+	fmt.Print(cmd)
+	out, err := exec.Command(cmd).Output()
+
+	if err != nil {
+		fmt.Fprint(w, err)
+	} else {
+		p := Page{Title: title, Output: out}
+
+		htmlTemp, _ := template.ParseFiles("output.html")
+		htmlTemp.Execute(w, p)
+	}
 }
 
 func main() {
 	http.HandleFunc("/view/", viewHandler) //handle all requests to the web root ("/") with handler
 	http.HandleFunc("/edit/", editHandler) // handle the edit request.
 	http.HandleFunc("/save/", saveHandler) // handle saving the page.
+	http.HandleFunc("/exec/", executeCode) // handle the code execute.
 	http.ListenAndServe(":9090", nil)      //function will block until program is terminated.
 }
 
