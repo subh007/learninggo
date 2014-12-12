@@ -74,7 +74,6 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := Page{Title: title, Body: []byte(body)}
 	p.save()
-
 	http.Redirect(w, r, "/exec/"+title, http.StatusFound) // what is statusfound
 }
 
@@ -83,12 +82,15 @@ func executeCode(w http.ResponseWriter, r *http.Request) {
 
 	title := r.URL.Path[len("/exec/"):]
 
-	cmd := "go run " + title + ".go"
-	cmd = "go"
-	fmt.Print(cmd)
-	out, err := exec.Command(cmd).Output()
+	cmd := "/usr/local/go/bin/go"
+
+	// execute the file and post the output
+	out, err := exec.Command(cmd, "run", title+".go").Output()
 
 	if err != nil {
+		// TODO : if error then respond with error
+		// message and give the link to go back to file.
+		fmt.Print("could not execute")
 		fmt.Fprint(w, err)
 	} else {
 		p := Page{Title: title, Output: out}
