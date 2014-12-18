@@ -16,13 +16,18 @@ func startServer() {
 
 		for {
 			fmt.Print("server started")
-			_, err := ln.Accept()
+			conn, err := ln.Accept()
 
 			if err != nil {
 				fmt.Print("erro in channel")
 			}
 
 			fmt.Print("connection recived.")
+
+			readbuff := make([]byte, 30)
+			byteCount, err := conn.Read(readbuff)
+
+			fmt.Print(string(readbuff[:byteCount]))
 		}
 	}
 }
