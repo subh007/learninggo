@@ -25,9 +25,13 @@ func startServer() {
 			fmt.Print("connection recived.")
 
 			readbuff := make([]byte, 30)
-			byteCount, err := conn.Read(readbuff)
 
-			fmt.Print(string(readbuff[:byteCount]))
+			for {
+				byteCount, _ := conn.Read(readbuff)
+				fmt.Print(string(readbuff[:byteCount]))
+
+				fmt.Fprint(conn, "--PONG--")
+			}
 		}
 	}
 }

@@ -11,7 +11,12 @@ func main() {
 	if err != nil {
 		fmt.Print("error" + err.Error())
 	} else {
-		fmt.Fprintf(conn, "--PING--")
-		conn.Close()
+
+		readbuff := make([]byte, 30)
+		for {
+			fmt.Fprintf(conn, "--PING--")
+			byteCount, _ := conn.Read(readbuff)
+			fmt.Print(string(readbuff[:byteCount]))
+		}
 	}
 }
