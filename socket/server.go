@@ -14,6 +14,7 @@ func startServer() {
 		fmt.Print("error happened")
 	} else {
 
+		fmt.Print("start server in different thread")
 		for {
 			fmt.Print("server started")
 			conn, err := ln.Accept()
@@ -24,14 +25,16 @@ func startServer() {
 
 			fmt.Print("connection recived.")
 
-			readbuff := make([]byte, 30)
+			// started the client handling in new thread.
+			go func(conn net.Conn) {
+				readbuff := make([]byte, 30)
+				for {
+					byteCount, _ := conn.Read(readbuff)
+					fmt.Print(string(readbuff[:byteCount]))
 
-			for {
-				byteCount, _ := conn.Read(readbuff)
-				fmt.Print(string(readbuff[:byteCount]))
-
-				fmt.Fprint(conn, "--PONG--")
-			}
+					fmt.Fprint(conn, "--PONG--")
+				}
+			}(conn)
 		}
 	}
 }
