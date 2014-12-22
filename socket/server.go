@@ -29,11 +29,19 @@ func startServer() {
 			go func(conn net.Conn) {
 				readbuff := make([]byte, 30)
 				for {
-					byteCount, _ := conn.Read(readbuff)
-					fmt.Print(string(readbuff[:byteCount]))
+					byteCount, err := conn.Read(readbuff)
 
-					fmt.Fprint(conn, "--PONG--")
+					if err != nil {
+						fmt.Print("socket is closed bye !!")
+						conn.Close()
+						break
+					} else {
+						fmt.Print(string(readbuff[:byteCount]))
+						fmt.Fprint(conn, "--PONG--")
+					}
+
 				}
+				fmt.Print("thread stop")
 			}(conn)
 		}
 	}
