@@ -3,7 +3,7 @@ package main
 
 import (
 	"fmt"
-	//"reflect"
+	"reflect"
 )
 
 type Iterable interface {
@@ -18,13 +18,16 @@ func main() {
 
 func Map(list Iterable) {
 
+	input := reflect.ValueOf(list)
 	//_ := reflect.ValueOf(list)
 
-	//for i := 1; i < list.Len(); i++ {
-	//	fmt.Print("go")
-	//}
+	for i := 0; i < input.Len(); i++ {
 
-	for _, value := range list {
-		fmt.Print(value)
+		data_type := input.Index(i).Type().Name()
+		if data_type == "int" {
+			fmt.Print(input.Index(i).Int())
+		} else if data_type == "uint8" {
+			fmt.Printf("%c", input.Index(i).Uint())
+		}
 	}
 }
