@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/subh007/goodl/go_ping_sweep"
 )
 
 func main() {
@@ -11,4 +12,8 @@ func main() {
 	flag.Parse()
 
 	fmt.Print(*host)
+
+	if go_ping_sweep.IsAdmin() {
+		fmt.Println("start the execution")
+	}
 }
