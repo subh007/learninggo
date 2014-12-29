@@ -7,6 +7,62 @@ import (
 	"os"
 )
 
+type icmpMessageBody struct {
+	ID   int    // identifier
+	Seq  int    // sequence number
+	Data []byte // data
+}
+
+// icmp packet
+type icmpMessage struct {
+	Type     int              // type
+	Code     int              // code
+	Checksum int              // checksum
+	Body     *icmpMessageBody // body
+}
+
+func (m *icmpMessage) Marshal() ([]byte, error) {
+	fmt.Println("marshalling the icmpmsg")
+	b := []byte{byte(m.Type), byte(m.Code), 0, 0}
+	if m.Body != nil && m.Body.Len() != 0 {
+		mb, err := m.Body.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		b = append(b, mb...)
+	}
+	csumcv := len(b) - 1 // checksum coverage
+	s := uint32(0)
+	for i := 0; i < csumcv; i += 2 {
+		s += uint32(b[i+1])<<8 | uint32(b[i])
+	}
+	if csumcv&1 == 0 {
+		s += uint32(b[csumcv])
+	}
+	s = s>>16 + s&0xffff
+	s = s + s>>16
+	// Place checksum back in header; using ^= avoids the
+	// assumption the checksum bytes are zero.
+	b[2] ^= byte(^s)
+	b[3] ^= byte(^s >> 8)
+	return b, nil
+}
+
+// Marshal returns the binary enconding of the ICMP echo request or
+// reply message body p.
+func (p *icmpMessageBody) Marshal() ([]byte, error) {
+	fmt.Println("marshalling the body")
+	b := make([]byte, 4+len(p.Data))
+	b[0], b[1] = byte(p.ID>>8), byte(p.ID)
+	b[2], b[3] = byte(p.Seq>>8), byte(p.Seq)
+	copy(b[4:], p.Data)
+	return b, nil
+}
+
+func (p *icmpMessageBody) Len() int {
+	return 4 + len(p.Data)
+}
+
 // This funciton return the admin priviledge for the
 // executing.
 func IsAdmin() bool {
@@ -20,10 +76,33 @@ func IsAdmin() bool {
 }
 
 func PingGoogle() {
-	_, err := net.Dial("ipv4:icmp", "127.0.0.1")
+	conn, err := net.Dial("ip4:icmp", "google.com")
 	if err != nil {
-		fmt.Println("some bug")
-	} else {
-		fmt.Println("proceed with connection")
+		fmt.Println(err.Error())
 	}
+	defer conn.Close()
+
+	fmt.Println("proceed with connection")
+	xid, xseq := os.Getpid()&0xffff, 1
+
+	// create icmp packet
+	icmp := icmpMessage{
+		Type: 8,
+		Code: 0,
+		Body: &icmpMessageBody{
+			ID: xid, Seq: xseq,
+			Data: []byte("Go Go packet"),
+		},
+	}
+
+	icmp_byte, err := icmp.Marshal()
+	if err != nil {
+		fmt.Println("err" + err.Error())
+	}
+	fmt.Println("nw we can ping")
+	_, err = conn.Write(icmp_byte)
+	if err != nil {
+		fmt.Println("err: " + err.Error())
+	}
+	fmt.Println("packet sent..")
 }
