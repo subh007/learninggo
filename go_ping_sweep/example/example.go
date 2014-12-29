@@ -15,5 +15,6 @@ func main() {
 
 	if go_ping_sweep.IsAdmin() {
 		fmt.Println("start the execution")
+		go_ping_sweep.PingGoogle()
 	}
 }
