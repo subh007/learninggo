@@ -131,18 +131,18 @@ func PingGoogle() {
 	if err != nil {
 		fmt.Println("err: " + err.Error())
 	}
-	fmt.Println("packet sent..")
+	fmt.Println("packet sent.." + string(icmp.Body.Data[:]))
 
 	// capture the ping response message
-	rb := make([]byte, 20+len(icmp_byte))
+	rb := make([]byte, 40+len(icmp_byte))
 
 	if _, err = conn.Read(rb); err != nil {
 		fmt.Print(err.Error())
 	}
 
-	_, err = parseICMPMessage(rb)
+	icmpReply, err := parseICMPMessage(rb)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
 	}
-	fmt.Println("icmp reply received")
+	fmt.Println("icmp reply received" + string(icmpReply.Body.Data[20:]))
 }
