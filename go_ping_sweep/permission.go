@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 )
 
 type icmpMessageBody struct {
@@ -127,6 +128,8 @@ func PingGoogle() {
 		fmt.Println("err" + err.Error())
 	}
 	fmt.Println("nw we can ping")
+
+	send_time := time.Now()
 	_, err = conn.Write(icmp_byte)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
@@ -140,6 +143,10 @@ func PingGoogle() {
 		fmt.Print(err.Error())
 	}
 
+	rcvd_time := time.Now()
+
+	diff := rcvd_time.Sub(send_time)
+	fmt.Println("time diff : " + diff.String())
 	icmpReply, err := parseICMPMessage(rb)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
