@@ -75,6 +75,33 @@ func IsAdmin() bool {
 	return false
 }
 
+func parseICMPMessageBody(b []byte) (*icmpMessageBody, error) {
+	p := &icmpMessageBody{
+		ID:  int(b[0]<<8) | int(b[1]),
+		Seq: int(b[2]<<8) | int(b[3]),
+	}
+
+	p.Data = make([]byte, len(b)-4)
+	copy(p.Data, b[4:])
+	return p, nil
+}
+
+func parseICMPMessage(b []byte) (*icmpMessage, error) {
+	m := &icmpMessage{
+		Type:     int(b[0]),
+		Code:     int(b[1]),
+		Checksum: int(b[2]<<8) | int(b[3]),
+	}
+
+	var err error
+	m.Body, err = parseICMPMessageBody(b[4:])
+	if err != nil {
+		fmt.Println("message can't be parsed")
+		return nil, err
+	}
+	return m, nil
+}
+
 func PingGoogle() {
 	conn, err := net.Dial("ip4:icmp", "google.com")
 	if err != nil {
@@ -105,4 +132,17 @@ func PingGoogle() {
 		fmt.Println("err: " + err.Error())
 	}
 	fmt.Println("packet sent..")
+
+	// capture the ping response message
+	rb := make([]byte, 20+len(icmp_byte))
+
+	if _, err = conn.Read(rb); err != nil {
+		fmt.Print(err.Error())
+	}
+
+	_, err = parseICMPMessage(rb)
+	if err != nil {
+		fmt.Println("err: " + err.Error())
+	}
+	fmt.Println("icmp reply received")
 }
