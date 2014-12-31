@@ -22,7 +22,6 @@ type icmpMessage struct {
 }
 
 func (m *icmpMessage) Marshal() ([]byte, error) {
-	fmt.Println("marshalling the icmpmsg")
 	b := []byte{byte(m.Type), byte(m.Code), 0, 0}
 	if m.Body != nil && m.Body.Len() != 0 {
 		mb, err := m.Body.Marshal()
@@ -51,7 +50,6 @@ func (m *icmpMessage) Marshal() ([]byte, error) {
 // Marshal returns the binary enconding of the ICMP echo request or
 // reply message body p.
 func (p *icmpMessageBody) Marshal() ([]byte, error) {
-	fmt.Println("marshalling the body")
 	b := make([]byte, 4+len(p.Data))
 	b[0], b[1] = byte(p.ID>>8), byte(p.ID)
 	b[2], b[3] = byte(p.Seq>>8), byte(p.Seq)
@@ -90,14 +88,21 @@ func parseICMPMessage(b []byte) (*icmpMessage, error) {
 	return m, nil
 }
 
-func PingGoogle() {
+// structure to hold the ping result.
+type Result struct {
+	TimePing   string // rtt time
+	DataSize   int    // data size in icmp packet
+	PacketSize int    // packet size of icmp
+	Status     bool   // status for ping pass/fail
+}
+
+func PingGoogle() Result {
 	conn, err := net.Dial("ip4:icmp", "google.com")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	defer conn.Close()
 
-	fmt.Println("proceed with connection")
 	xid, xseq := os.Getpid()&0xffff, 1
 
 	// create icmp packet
@@ -114,14 +119,12 @@ func PingGoogle() {
 	if err != nil {
 		fmt.Println("err" + err.Error())
 	}
-	fmt.Println("nw we can ping")
 
 	send_time := time.Now()
 	_, err = conn.Write(icmp_byte)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
 	}
-	fmt.Println("packet sent.." + string(icmp.Body.Data[:]))
 
 	// capture the ping response message
 	rb := make([]byte, 40+len(icmp_byte))
@@ -133,10 +136,16 @@ func PingGoogle() {
 	rcvd_time := time.Now()
 
 	diff := rcvd_time.Sub(send_time)
-	fmt.Println("time diff : " + diff.String())
 	icmpReply, err := parseICMPMessage(rb)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
 	}
-	fmt.Println("icmp reply received" + string(icmpReply.Body.Data[20:]))
+
+	res := Result{
+		TimePing:   diff.String(),
+		DataSize:   0,
+		PacketSize: 0,
+		Status:     true,
+	}
+	return res
 }

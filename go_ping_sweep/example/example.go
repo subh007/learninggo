@@ -14,7 +14,10 @@ func main() {
 	fmt.Print(*host)
 
 	if go_ping_sweep.IsAdmin() {
-		fmt.Println("start the execution")
-		go_ping_sweep.PingGoogle()
+
+		for i := 1; i < 10; i++ {
+			res := go_ping_sweep.PingGoogle()
+			fmt.Println("Ping time is taken -- " + res.TimePing)
+		}
 	}
 }
