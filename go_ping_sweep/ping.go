@@ -136,7 +136,7 @@ func PingGoogle() Result {
 	rcvd_time := time.Now()
 
 	diff := rcvd_time.Sub(send_time)
-	icmpReply, err := parseICMPMessage(rb)
+	_, err = parseICMPMessage(rb)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
 	}
