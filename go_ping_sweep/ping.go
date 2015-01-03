@@ -96,7 +96,7 @@ type Result struct {
 	Status     bool   // status for ping pass/fail
 }
 
-func PingGoogle() Result {
+func PingGoogle() *Table {
 	conn, err := net.Dial("ip4:icmp", "google.com")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -141,11 +141,9 @@ func PingGoogle() Result {
 		fmt.Println("err: " + err.Error())
 	}
 
-	res := Result{
-		TimePing:   diff.String(),
-		DataSize:   0,
-		PacketSize: 0,
-		Status:     true,
-	}
-	return res
+	t := new(Table)
+	t.SetHeader("TimePing", "DataSize", "PacketSize", "status")
+	t.AddData(diff.String(), "0", "0", "1")
+
+	return t
 }
