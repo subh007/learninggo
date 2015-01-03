@@ -96,8 +96,8 @@ type Result struct {
 	Status     bool   // status for ping pass/fail
 }
 
-func PingGoogle() *Table {
-	conn, err := net.Dial("ip4:icmp", "google.com")
+func PingAnalyse(host string) *Table {
+	conn, err := net.Dial("ip4:icmp", host)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
