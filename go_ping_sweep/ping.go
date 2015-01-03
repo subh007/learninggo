@@ -96,21 +96,9 @@ type Result struct {
 	Status     bool   // status for ping pass/fail
 }
 
-func PingAnalyse(host string) *Table {
-
-	addrs, err := net.LookupIP(host)
-	if err != nil {
-		fmt.Println("could not resolve the host :" + host + err.Error())
-		os.Exit(1)
-	}
-	host = addrs[0].String()
-	conn, err := net.Dial("ip4:icmp", host)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(-1)
-	}
-	defer conn.Close()
-
+// function sends the single icmp packet and respnse back with the
+// Result.
+func singlePing(host string, conn net.Conn) (*Result, error) {
 	xid, xseq := os.Getpid()&0xffff, 1
 
 	// create icmp packet
@@ -125,13 +113,14 @@ func PingAnalyse(host string) *Table {
 
 	icmp_byte, err := icmp.Marshal()
 	if err != nil {
-		fmt.Println("err" + err.Error())
+		return nil, err
 	}
 
 	send_time := time.Now()
 	_, err = conn.Write(icmp_byte)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
+		return nil, err
 	}
 
 	// capture the ping response message
@@ -140,7 +129,7 @@ func PingAnalyse(host string) *Table {
 	conn.SetReadDeadline(time.Now().Add(time.Second * 5))
 	if _, err = conn.Read(rb); err != nil {
 		fmt.Print(err.Error())
-		return nil
+		return nil, err
 	}
 
 	rcvd_time := time.Now()
@@ -149,11 +138,59 @@ func PingAnalyse(host string) *Table {
 	_, err = parseICMPMessage(rb)
 	if err != nil {
 		fmt.Println("err: " + err.Error())
+		return nil, err
 	}
+
+	var r Result
+	r.TimePing = diff.String()
+	r.DataSize = 0
+	r.PacketSize = 0
+	r.Status = true
+
+	return &r, nil
+}
+
+// setup the connection for sending the ICMP packet.
+func setupConnection(conn_type, host string) (net.Conn, error) {
+	addrs, err := net.LookupIP(host)
+	if err != nil {
+		return nil, err
+	}
+	host = addrs[0].String()
+	conn, err := net.Dial("ip4:icmp", host)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+// funtion analyze the ping time and return in table format.
+func PingAnalyse(host string, pkt_count int) (*Table, error) {
 
 	t := new(Table)
 	t.SetHeader("TimePing", "DataSize", "PacketSize", "status")
-	t.AddData(diff.String(), "0", "0", "1")
 
-	return t
+	conn, err := setupConnection("ip4:icmp", host)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	for i := 0; i < pkt_count; i++ {
+		res, err := singlePing(host, conn)
+
+		if err != nil {
+			t.AddData("0", "0", "0", "-1")
+		} else {
+			t.AddData(
+				res.TimePing,
+				"-",
+				"-",
+				"1",
+			)
+		}
+	}
+
+	return t, nil
 }

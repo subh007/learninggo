@@ -18,9 +18,11 @@ func main() {
 	}
 
 	if go_ping_sweep.IsAdmin() {
-		for i := 1; i < 10; i++ {
-			t := go_ping_sweep.PingAnalyse(*host)
-			t.CreateTable()
+		t, err := go_ping_sweep.PingAnalyse(*host, 10)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(-1)
 		}
+		t.CreateTable()
 	}
 }
