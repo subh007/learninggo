@@ -97,9 +97,17 @@ type Result struct {
 }
 
 func PingAnalyse(host string) *Table {
+
+	addrs, err := net.LookupIP(host)
+	if err != nil {
+		fmt.Println("could not resolve the host :" + host + err.Error())
+		os.Exit(1)
+	}
+	host = addrs[0].String()
 	conn, err := net.Dial("ip4:icmp", host)
 	if err != nil {
 		fmt.Println(err.Error())
+		os.Exit(-1)
 	}
 	defer conn.Close()
 
@@ -129,8 +137,10 @@ func PingAnalyse(host string) *Table {
 	// capture the ping response message
 	rb := make([]byte, 40+len(icmp_byte))
 
+	conn.SetReadDeadline(time.Now().Add(time.Second * 5))
 	if _, err = conn.Read(rb); err != nil {
 		fmt.Print(err.Error())
+		return nil
 	}
 
 	rcvd_time := time.Now()
