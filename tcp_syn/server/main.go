@@ -18,9 +18,8 @@ func main() {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-
+		conn.Close()
 		fmt.Println("received one connection")
-		conn.close()
 	}
 
 }
