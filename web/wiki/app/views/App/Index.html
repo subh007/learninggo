@@ -1,25 +1,19 @@
-<html>
-<head>
-    </head>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" >
+    <title>Pure HTML submit and link buttons</title>
+</head>
 <body>
-<div id="login_form">
-  <form name="f1" method="post" action="login" id="f1">
-    <table>
-      <tr>
-        <td class="f1_label">User Name :</td><td><input type="text" name="username" value="" />
-      </td>
-      </tr>
-      <tr>
-        <td class="f1_label">Password  :</td><td><input type="password" name="password" value=""  />
-      </td>
-      </tr>
-      <tr>
-        <td>
-          <input type="submit" name="login" value="Log In" style="font-size:18px; " />
-        </td>
-      </tr>
-    </table>
-  </form>
-</div>
 
-{{template "footer.html" .}}
+<div>
+    <form action="login" method="post">
+        First name: <input type="text" name="user"><br>
+        Password: <input type="text" name="pass"><br>
+        <button type="submit">login</button><br>
+        <button type="submit" formaction="register">register</button>
+
+    </form>
+    </div>
+
+</body>
+</html>
