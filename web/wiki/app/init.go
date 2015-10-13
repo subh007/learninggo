@@ -1,6 +1,9 @@
 package app
 
 import "github.com/revel/revel"
+import (
+	"github.com/subh007/goodl/web/wiki/app/controllers"
+)
 
 func init() {
 	// Filters is the default set of global filters.
@@ -21,7 +24,10 @@ func init() {
 
 	// register startup functions with OnAppStart
 	// ( order dependent )
-	// revel.OnAppStart(InitDB)
+	 revel.OnAppStart(controllers.InitDB)
+	revel.InterceptMethod((*controllers.GorpController).Begin, revel.BEFORE)
+	revel.InterceptMethod((*controllers.GorpController).Commit, revel.AFTER)
+	revel.InterceptMethod((*controllers.GorpController).Rollback, revel.FINALLY)
 	// revel.OnAppStart(FillCache)
 }
 
