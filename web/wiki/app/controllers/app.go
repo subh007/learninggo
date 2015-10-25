@@ -42,13 +42,18 @@ func checkExistingUser(user string, c GorpController) bool {
 // regiser the user with {username, password, nick}
 func (c App) Register(user, pass string) revel.Result {
 	// insert the entry into table
-	userModel := models.WikiUser{UserName: user,
+	userModel := models.WikiUser{
+		UserName: user,
 		Password: pass,
 		Nick:     "temp",
 	}
-	checkExistingUser(user, c.GorpController)
-	c.Txn.Insert(&userModel)
+	if !checkExistingUser(user, c.GorpController) {
+		// user does not exist insert the entry
+		c.Txn.Insert(&userModel)
+		fmt.Println("added the new user")
+	} else {
+		fmt.Println("existing user.")
+	}
 
-	c.Flash.Error("lgoin failed")
 	return c.Result
 }
