@@ -4,6 +4,7 @@ import "github.com/revel/revel"
 import (
 	"fmt"
 	"github.com/subh007/goodl/web/wiki/app/models"
+	"github.com/subh007/goodl/web/wiki/app/routes"
 )
 
 type App struct {
@@ -16,7 +17,27 @@ func (c App) Index() revel.Result {
 
 func (c App) Login(user, pass string) revel.Result {
 	fmt.Println("username :" + user)
-	return c.Result
+
+	// read the user info from db to authenticate
+	users, err := c.Txn.Select(models.WikiUser{},
+		"select * from WikiUser where UserName = ? and Password = ?",
+		user,
+		pass)
+
+	fmt.Println("query is done")
+	if err != nil {
+		panic(err)
+	}
+	if len(users) == 0 {
+		// user is not authenticated
+		fmt.Println("redirected !!")
+		return c.Redirect(routes.App.Index())
+	} else {
+		// Authentication successfull.
+		fmt.Println("user Authenticated")
+		// Redirec to wiki User home
+		return c.Result
+	}
 }
 
 func (c App) RegisterPage() revel.Result {
@@ -55,5 +76,6 @@ func (c App) Register(user, pass string) revel.Result {
 		fmt.Println("existing user.")
 	}
 
-	return c.Result
+	// after user auth redirect to index.
+	return c.Redirect(routes.App.Index())
 }
