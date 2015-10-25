@@ -19,19 +19,36 @@ func (c App) Login(user, pass string) revel.Result {
 	return c.Result
 }
 
-func (c App) RegisterPage() revel.Result{
+func (c App) RegisterPage() revel.Result {
 	return c.Render()
 }
 
-// regiser the user with {username, password, nick}
-func(c App) Register(user, pass string) revel.Result{
-	// insert the entry into table
-	userModel := models.WikiUser{UserName: user,
-							Password: pass,
-							Nick: "temp",
+// this function checks whether the user
+// name is already taken.
+func checkExistingUser(user string, c GorpController) bool {
+	users, err := c.Txn.Select(models.WikiUser{}, "select * from WikiUser where UserName = ?", user)
+
+	if err != nil {
+		panic(err)
 	}
 
-	c.Txn.Insert(&userModel);
+	if len(users) == 0 {
+		return false
+	}
+	fmt.Print(users)
+	return true
+}
 
+// regiser the user with {username, password, nick}
+func (c App) Register(user, pass string) revel.Result {
+	// insert the entry into table
+	userModel := models.WikiUser{UserName: user,
+		Password: pass,
+		Nick:     "temp",
+	}
+	checkExistingUser(user, c.GorpController)
+	c.Txn.Insert(&userModel)
+
+	c.Flash.Error("lgoin failed")
 	return c.Result
 }

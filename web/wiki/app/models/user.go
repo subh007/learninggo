@@ -1,9 +1,8 @@
 package models
 
-
 type WikiUser struct {
-	UserId int64
+	UserId   int64
 	UserName string
 	Password string
-	Nick string
+	Nick     string
 }
