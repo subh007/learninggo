@@ -37,10 +37,9 @@ type AtStatus struct {
 	Phase string `json:"phase,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-
-// At is the Schema for the ats API
+// +kubebuilder:object:root=true
+// +kubebuilder:object:generate=true
+// +kubebuilder:subresource:status
 type At struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
