@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,9 +48,19 @@ type AtReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.0/pkg/reconcile
 func (r *AtReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	reqLogger := log.Log.WithValues("namespace", req.Namespace, "at", req.Name)
+	reqLogger.Info("=== we are inside reconcile loop ===")
 
-	// TODO(user): your logic here
+	instance := &cnatv1alpha1.At{}
+	if err := r.Get(context.TODO(), req.NamespacedName, instance); err != nil {
+		if errors.IsNotFound(err) {
+			reqLogger.Error(err, "this object got deleted", "name", req.NamespacedName)
+			return ctrl.Result{}, err
+		}
+		reqLogger.Error(err, "there is error")
+	}
+
+	reqLogger.Info("found object:", "AT", instance)
 
 	return ctrl.Result{}, nil
 }
