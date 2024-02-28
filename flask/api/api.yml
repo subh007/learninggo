@@ -1,0 +1,41 @@
+definitions:
+  Color:
+    type: string
+  Palette:
+    properties:
+      color:
+        items:
+          $ref: '#/definitions/Color'
+        type: array
+    type: object
+info:
+  description: powered by Flasgger
+  termsOfService: /tos
+  title: A swagger API
+  version: 0.0.1
+paths:
+  /colors/{palette}/:
+    get:
+      description: This is using docstrings for specifications.<br/>
+      parameters:
+        - default: all
+          enum:
+            - all
+            - rgb
+            - cmyk
+          in: path
+          name: palette
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A list of colors (may be filtered by palette)
+          examples:
+            rgb:
+              - red
+              - green
+              - blue
+          schema:
+            $ref: '#/definitions/Palette'
+      summary: Example endpoint returning a list of colors by palette
+swagger: '2.0'
